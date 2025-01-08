@@ -6,9 +6,10 @@ const axios = require('axios')
 
 const util = require('./utils')
 
-const GUESTBOOK_API_ADDR = process.env.GUESTBOOK_API_ADDR
+//const GUESTBOOK_API_ADDR = process.env.GUESTBOOK_API_ADDR
 
-const BACKEND_URI = `http://${GUESTBOOK_API_ADDR}/messages`
+//const BACKEND_URI = `http://${GUESTBOOK_API_ADDR}/messages`
+const BACKEND_URI = `http://localhost:6000/messages`
 
 app.set("view engine", "pug")
 app.set("views", path.join(__dirname, "views"))
@@ -22,23 +23,45 @@ router.use(bodyParser.urlencoded({ extended: false }))
 
 
 // 환경변수 검증
-if(!process.env.PORT) {
-  const errMsg = "PORT environment variable is not defined"
-  console.error(errMsg)
-  throw new Error(errMsg)
-}
+// if(!process.env.PORT) {
+//   const errMsg = "PORT environment variable is not defined"
+//   console.error(errMsg)
+//   throw new Error(errMsg)
+// }
 
-if(!process.env.GUESTBOOK_API_ADDR) {
-  const errMsg = "GUESTBOOK_API_ADDR environment variable is not defined"
-  console.error(errMsg)
-  throw new Error(errMsg)
-}
+// if(!process.env.GUESTBOOK_API_ADDR) {
+//   const errMsg = "GUESTBOOK_API_ADDR environment variable is not defined"
+//   console.error(errMsg)
+//   throw new Error(errMsg)
+// }
 
 // 환경변수로 포트해주는거
-const PORT = process.env.PORT;
+//const PORT = process.env.PORT;
+const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
   console.log('Press Ctrl+C to quit.');
+});
+
+// PATCH 요청: tracknum으로 조회 후 views 증가
+router.patch("/:tracknum", async (req, res) => {
+  const { tracknum } = req.params;
+
+  if (!tracknum) {
+    return res.status(400).send("tracknum is required");
+  }
+
+  try {
+    // 백엔드 API 호출
+    const response = await axios.patch(`${BACKEND_URI}/${tracknum}`);
+    console.log(`PATCH request successful for tracknum ${tracknum}:`, response.data);
+
+    // 성공적으로 업데이트된 데이터를 반환
+    res.json(response.data);
+  } catch (error) {
+    console.error(`Error in PATCH request for tracknum ${tracknum}:`, error.message);
+    res.status(500).send(`Error updating views for tracknum ${tracknum}: ${error.message}`);
+  }
 });
 
 // 백엔드로 부터 가져오는거
